@@ -4,19 +4,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class TopicService implements Service {
-    private final ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> queue = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String,
+            ConcurrentLinkedQueue<String>> queue = new ConcurrentHashMap<>();
 
     @Override
     public Resp process(Req req) {
         int status = 200;
-        String text = req.text();
         String queueName = req.queueName();
         String reqMethod = req.method();
+        String text = "";
         queue.putIfAbsent(queueName, new ConcurrentLinkedQueue<>());
-        if (reqMethod.equals("POST")) {
-            queue.get(queueName).add(text);
+        if ("POST".equals(reqMethod)) {
+            for (String s : req.params()) {
+                text = s;
+                queue.get(queueName).add(s);
+            }
             status = 201;
-        } else if (reqMethod.equals("GET")) {
+        } else if ("GET".equals(reqMethod)) {
             ConcurrentLinkedQueue<String> clqCopy
                     = new ConcurrentLinkedQueue<>(new ConcurrentHashMap<>(queue).get(queueName));
             text = clqCopy.poll();
@@ -26,5 +30,12 @@ public class TopicService implements Service {
             }
         }
         return new Resp(text, status);
+    }
+
+    @Override
+    public String toString() {
+        return "TopicService{"
+                + "queue=" + queue
+                + '}';
     }
 }

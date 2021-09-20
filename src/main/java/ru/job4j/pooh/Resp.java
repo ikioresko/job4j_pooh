@@ -16,4 +16,12 @@ public class Resp {
     public int status() {
         return status;
     }
+
+    @Override
+    public String toString() {
+        return "Resp{"
+                + "text='" + text + '\''
+                + ", status=" + status
+                + '}';
+    }
 }

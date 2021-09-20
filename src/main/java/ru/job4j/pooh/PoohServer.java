@@ -21,15 +21,16 @@ public class PoohServer {
         try (ServerSocket server = new ServerSocket(9000)) {
             while (!server.isClosed()) {
                 Socket socket = server.accept();
-                pool.execute(() -> {
+                pool.submit(() -> {
                     try (OutputStream out = socket.getOutputStream();
                          InputStream input = socket.getInputStream()) {
                         byte[] buff = new byte[1_000_000];
                         var total = input.read(buff);
-                        var text = new String(Arrays.copyOfRange(buff, 0, total), StandardCharsets.UTF_8);
+                        var text = new String(
+                                Arrays.copyOfRange(buff, 0, total), StandardCharsets.UTF_8);
                         var req = Req.of(text);
                         var resp = modes.get(req.mode()).process(req);
-                        out.write(("HTTP/1.1 " + resp.status() + " OK\r\n").getBytes());
+                        out.write(("HTTP/1.1 " + resp.status() + " OK\r\n\r\n").getBytes());
                         out.write(resp.text().getBytes());
                     } catch (IOException e) {
                         e.printStackTrace();
